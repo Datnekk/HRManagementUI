@@ -35,6 +35,7 @@ export async function action({ request }: ActionFunctionArgs) {
   );
 
   if (error) {
+    console.log(error);
     return {
       message: result?.data?.ErrorMessage ?? "Đăng nhập thất bại.",
     } as const;

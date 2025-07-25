@@ -17,7 +17,8 @@ export interface NavbarNestedProps {
 export function NavbarNested({ collapsed, roles }: NavbarNestedProps) {
   const isAdmin = roles?.includes("Admin");
   const isHr = roles?.includes("HR");
-  const items = getNavItem(isAdmin, isHr);
+  const isEmployee = roles?.includes("Employee");
+  const items = getNavItem(isAdmin, isHr, isEmployee);
   const links = items.map((item) => (
     <LinksGroup {...item} key={item.label} collapsed={collapsed} />
   ));
@@ -25,7 +26,7 @@ export function NavbarNested({ collapsed, roles }: NavbarNestedProps) {
   return <div>{links}</div>;
 }
 
-const getNavItem = (isAdmin: boolean, isHr: boolean): LinksGroupProps[] => {
+const getNavItem = (isAdmin: boolean, isHr: boolean, isEmployee: boolean): LinksGroupProps[] => {
   const baseItems: LinksGroupProps[] = [
     {
       label: "Attendance",
@@ -82,6 +83,13 @@ const getNavItem = (isAdmin: boolean, isHr: boolean): LinksGroupProps[] => {
       icon: <IconUsers />,
       initiallyOpened: true,
       link: `/employee`,
+    });
+  } else if (isEmployee) {
+    extraItems.push({
+      label: "Statistical",
+      icon: <IconUsers />,
+      initiallyOpened: true,
+      link: `/statistical`,
     });
   }
 
