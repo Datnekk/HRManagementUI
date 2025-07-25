@@ -1,0 +1,10 @@
+@tailwind components;
+@tailwind utilities;
+
+@layer {
+  @tailwind base;
+}
+
+:global(.content-container) {
+  height: calc(100vh - 4rem);
+}
