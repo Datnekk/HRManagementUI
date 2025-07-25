@@ -1,7 +1,7 @@
-import { Button, PasswordInput, TextInput } from "@mantine/core";
+import { Button } from "@mantine/core";
 import { IconPlus } from "@tabler/icons-react";
 import { useState } from "react";
-import { AddModal } from "~/components/AddModal";
+import { EmployeeModal } from "~/components/EmployeeModal";
 import { TableWithActions } from "~/components/TableWithActions";
 import { MetaData, UserDTO } from "~/types/type";
 
@@ -42,20 +42,7 @@ export default function EmployeeTab({ users, meta }: EmployeeTabProps) {
           console.log("Delete department", item);
         }}
       />
-      <AddModal
-        opened={modalOpen}
-        onClose={() => setModalOpen(false)}
-        title="Create Account"
-        submitLabel="Create"
-        isSuccess={(data) => data?.IsAuthSuccessful === true}
-        getError={(data) => data?.ErrorMessage ?? null}
-      >
-        <TextInput name="FirstName" label="First Name" required />
-        <TextInput name="LastName" label="Last Name" required />
-        <TextInput name="Email" label="Email" type="email" required />
-        <TextInput name="UserName" label="Username" required />
-        <PasswordInput name="Password" label="Password" required />
-      </AddModal>
+      <EmployeeModal opened={modalOpen} onClose={() => setModalOpen(false)} />
     </>
   );
 }

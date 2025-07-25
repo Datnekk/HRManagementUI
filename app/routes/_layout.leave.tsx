@@ -21,19 +21,28 @@ enum TabKeys {
 }
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  const { roles, accessToken } = await requireAuth(request);
+  const { roles, accessToken, id } = await requireAuth(request);
 
   const url = new URL(request.url);
 
   const page = parseInt(url.searchParams.get("pageNumber") ?? "1", 10);
   const pageSize = parseInt(url.searchParams.get("pageSize") ?? "10", 10);
-
   const skip = (page - 1) * pageSize;
+
+  let approvedFilter = `Status eq 'Approved'`;
+  let pendingFilter = `Status eq 'Pending'`;
+
+  if (roles.includes("Employee")) {
+    approvedFilter += ` and UserID eq ${id}`;
+    pendingFilter += ` and UserID eq ${id}`;
+  }
 
   const [error, result] = await asyncRunSafe(
     Promise.all([
       serviceClient.get(
-        `/LeaveRequest?$filter=Status eq 'Approved'&$top=${pageSize}&$skip=${skip}&$count=true`,
+        `/LeaveRequest?$filter=${encodeURIComponent(
+          approvedFilter
+        )}&$top=${pageSize}&$skip=${skip}&$count=true`,
         {
           headers: {
             Authorization: `Bearer ${accessToken}`,
@@ -41,16 +50,24 @@ export async function loader({ request }: LoaderFunctionArgs) {
         }
       ),
       serviceClient.get(
-        `/LeaveRequest?$filter=Status eq 'Pending'&$top=${pageSize}&$skip=${skip}&$count=true`,
+        `/LeaveRequest?$filter=${encodeURIComponent(
+          pendingFilter
+        )}&$top=${pageSize}&$skip=${skip}&$count=true`,
         {
           headers: {
             Authorization: `Bearer ${accessToken}`,
           },
         }
       ),
+      serviceClient.get(`/LeaveRequest/${id}/remaining-days`, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      }),
     ])
   );
-  const [lrAppRes, lrPendingRes] = result ?? [];
+
+  const [lrAppRes, lrPendingRes, remainDayRes] = result ?? [];
   const lrAppCount = lrAppRes?.data["@odata.count"] ?? 0;
   const lrPendingCount = lrPendingRes?.data["@odata.count"] ?? 0;
 
@@ -76,6 +93,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
       TotalPages: Math.ceil(lrPendingCount / pageSize),
       TotalCount: lrPendingCount,
     },
+    remainDay: remainDayRes?.data,
   };
 }
 
@@ -114,7 +132,7 @@ export async function action({ request }: ActionFunctionArgs) {
         },
       })
     );
-    if (error as AxiosError) {
+    if (error) {
       return json(
         { success: false, message: `${error?.response?.data}` },
         { status: 400 }
@@ -132,7 +150,7 @@ export async function action({ request }: ActionFunctionArgs) {
 }
 
 export default function Leave() {
-  const { roles, lrApp, lrAppMeta, lrPending, lrPendingMeta } =
+  const { roles, lrApp, lrAppMeta, lrPending, lrPendingMeta, remainDay } =
     useLoaderData<typeof loader>();
   const isHr = roles?.includes("HR");
   const [activeTab, setActiveTab] = useState<TabKeys | string | null>(
@@ -146,24 +164,25 @@ export default function Leave() {
           <Tabs.Tab value={TabKeys.leaveApplication}>
             Leave Application
           </Tabs.Tab>
-          {isHr && (
-            <Tabs.Tab value={TabKeys.pendingApplication}>
-              Pending Application
-            </Tabs.Tab>
-          )}
+          <Tabs.Tab value={TabKeys.pendingApplication}>
+            Pending Application
+          </Tabs.Tab>
         </Tabs.List>
 
         <Tabs.Panel value={TabKeys.leaveApplication}>
-          <LeaveRequestApplicationTab lrApp={lrApp} meta={lrAppMeta} />
+          <LeaveRequestApplicationTab
+            lrApp={lrApp}
+            remainDay={remainDay}
+            meta={lrAppMeta}
+          />
         </Tabs.Panel>
-        {isHr && (
-          <Tabs.Panel value={TabKeys.pendingApplication}>
-            <LeaveRequestPendingTab
-              lrPending={lrPending}
-              meta={lrPendingMeta}
-            />
-          </Tabs.Panel>
-        )}
+        <Tabs.Panel value={TabKeys.pendingApplication}>
+          <LeaveRequestPendingTab
+            lrPending={lrPending}
+            meta={lrPendingMeta}
+            isValid={isHr}
+          />
+        </Tabs.Panel>
       </Tabs>
     </div>
   );

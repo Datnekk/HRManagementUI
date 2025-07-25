@@ -1,11 +1,11 @@
 export type LoginResponse = {
   IsAuthSuccessful: boolean;
   ErrorMessage: string;
-  Id: number;
-  Email: string;
-  Roles: string[];
-  AccessToken: string;
-  RefreshToken: string;
+  Id?: number;
+  Email?: string;
+  Roles?: string[];
+  AccessToken?: string;
+  RefreshToken?: string;
 };
 
 export type MetaData = {
@@ -56,4 +56,30 @@ export type LeaveRequestDTO = {
   UserID: number;
   ApproverNote: string;
   UserName: string;
+};
+
+export type SalaryDTO = {
+  SalaryID: number;
+  UserID: number;
+  UserName: string;
+  BaseSalary: number;
+  Allowances: number;
+  Bonus: number;
+  Deduction: number;
+  Tax: number;
+  NetSalary: number;
+  SalaryPeriod: Date;
+};
+
+export type PayslipDTO = {
+  UserName: string;
+  SalaryID: number;
+  IssueDate: Date;
+  FilePath: string;
+  Status: string;
+};
+
+export type RemainDayDTO = {
+  Used: number;
+  Remaining: number;
 };

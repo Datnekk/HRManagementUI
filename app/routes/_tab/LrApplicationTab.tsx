@@ -1,23 +1,57 @@
-import { Button, TextInput } from "@mantine/core";
+import {
+  Badge,
+  Button,
+  Card,
+  Group,
+  Stack,
+  TextInput,
+  Text,
+} from "@mantine/core";
 import { DateTimePicker } from "@mantine/dates";
 import { IconPlus } from "@tabler/icons-react";
 import { useState } from "react";
 import { AddModal } from "~/components/AddModal";
 import { TableWithActions } from "~/components/TableWithActions";
-import { LeaveRequestDTO, MetaData } from "~/types/type";
+import { LeaveRequestDTO, MetaData, RemainDayDTO } from "~/types/type";
 
 export interface LeaveRequestApplicationTabProps {
   lrApp: LeaveRequestDTO[];
+  remainDay: RemainDayDTO;
   meta: MetaData;
 }
 
 export default function LeaveRequestApplicationTab({
   lrApp,
+  remainDay,
   meta,
 }: LeaveRequestApplicationTabProps) {
   const [modalOpen, setModalOpen] = useState(false);
   return (
     <>
+      <Card
+        shadow="sm"
+        padding="lg"
+        radius="md"
+        withBorder
+        mb="lg"
+        className="py-4"
+      >
+        <Group justify="space-between">
+          <Stack gap={4}>
+            <Text fw={600} size="lg">
+              Leave Balance
+            </Text>
+            <Group>
+              <Badge color="red" size="lg" radius="sm">
+                Used: {remainDay.Used}
+              </Badge>
+              <Badge color="green" size="lg" radius="sm">
+                Remaining: {remainDay.Remaining}
+              </Badge>
+            </Group>
+          </Stack>
+        </Group>
+      </Card>
       <TableWithActions<LeaveRequestDTO>
         data={lrApp}
         meta={meta}

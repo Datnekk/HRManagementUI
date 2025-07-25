@@ -13,10 +13,15 @@ interface AddModalProps {
   getError?: (data: any) => string | null;
 }
 
-const defaultIsSuccess = (data: any): boolean => !!data && !data.ErrorMessage;
+const defaultIsSuccess = (data: any): boolean => {
+  if (!data) return false;
+  return !data.ErrorMessage && data.success !== false;
+};
 
-const defaultGetError = (data: any): string | null =>
-  data?.ErrorMessage ?? null;
+const defaultGetError = (data: any): string | null => {
+  if (!data) return "An unexpected error occurred";
+  return data.ErrorMessage || data.message || null;
+};
 
 export function AddModal({
   opened,
@@ -28,31 +33,30 @@ export function AddModal({
   getError = defaultGetError,
 }: AddModalProps) {
   const fetcher = useFetcher();
-  const hasNotified = useRef(false);
+  const hasProcessedResponse = useRef(false);
 
   const isSubmitting = fetcher.state === "submitting";
+  const isIdle = fetcher.state === "idle";
 
   useEffect(() => {
     if (!opened || isSubmitting) {
-      hasNotified.current = false;
+      hasProcessedResponse.current = false;
     }
   }, [opened, isSubmitting]);
 
   useEffect(() => {
-    if (!opened && fetcher.data) {
-      fetcher.data = undefined;
-    }
-  }, [opened, fetcher]);
-
-  useEffect(() => {
-    if (!fetcher.data || !opened || hasNotified.current) {
+    if (!fetcher.data || !opened || !isIdle || hasProcessedResponse.current) {
       return;
     }
 
-    hasNotified.current = true;
+    hasProcessedResponse.current = true;
+
+    console.log("Processing response:", fetcher.data);
 
     if (isSuccess(fetcher.data)) {
-      notifySuccess(fetcher.data.message ?? "Success");
+      const successMessage =
+        fetcher.data.message || "Operation completed successfully";
+      notifySuccess(successMessage);
       onClose();
     } else {
       const errorMessage = getError(fetcher.data);
@@ -60,10 +64,18 @@ export function AddModal({
         notifyError(errorMessage);
       }
     }
-  }, [fetcher.data, isSuccess, getError, onClose, opened]);
+  }, [
+    fetcher.data,
+    fetcher.state,
+    isSuccess,
+    getError,
+    onClose,
+    opened,
+    isIdle,
+  ]);
 
   const handleClose = useCallback(() => {
-    hasNotified.current = false;
+    hasProcessedResponse.current = false;
     onClose();
   }, [onClose]);
 

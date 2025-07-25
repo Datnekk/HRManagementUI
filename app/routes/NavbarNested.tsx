@@ -43,7 +43,7 @@ const getNavItem = (isAdmin: boolean, isHr: boolean): LinksGroupProps[] => {
       label: "Payroll",
       icon: <IconCashRegister />,
       initiallyOpened: true,
-      link: `/pay-roll`,
+      link: `/pay`,
     },
     {
       label: "Settings",

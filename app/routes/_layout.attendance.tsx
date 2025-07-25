@@ -56,7 +56,7 @@ export async function action({ request }: ActionFunctionArgs) {
 
   try {
     if (actionType === "check-in") {
-      const [error, result] = await asyncRunSafe(
+      const [error] = await asyncRunSafe(
         serviceClient.post(`/Attendance/${id}/check-in`, null, {
           headers: {
             Authorization: `Bearer ${accessToken}`,
@@ -64,11 +64,14 @@ export async function action({ request }: ActionFunctionArgs) {
         })
       );
       if (error) {
-        return json({ success: false, message: `${error}` }, { status: 400 });
+        return json(
+          { success: false, message: `${error?.response?.data}` },
+          { status: 400 }
+        );
       }
-      return json({ success: true, message: `${result}` });
+      return json({ success: true, message: `Suceesfully` });
     } else if (actionType === "check-out") {
-      const [error, result] = await asyncRunSafe(
+      const [error] = await asyncRunSafe(
         serviceClient.post(`/Attendance/${id}/check-out`, null, {
           headers: {
             Authorization: `Bearer ${accessToken}`,
@@ -76,9 +79,12 @@ export async function action({ request }: ActionFunctionArgs) {
         })
       );
       if (error) {
-        return json({ success: false, message: `${error}` }, { status: 400 });
+        return json(
+          { success: false, message: `${error?.response?.data}` },
+          { status: 400 }
+        );
       }
-      return json({ success: true, message: `${result}` });
+      return json({ success: true, message: `Suceesfully` });
     }
   } catch (error) {
     return json(

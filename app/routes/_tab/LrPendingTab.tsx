@@ -9,6 +9,7 @@ import { notifyError, notifySuccess } from "~/utils/notif";
 export interface LeaveRequestPendingTabProps {
   lrPending: LeaveRequestDTO[];
   meta: MetaData;
+  isValid: boolean;
 }
 
 type ActionResponse = {
@@ -19,6 +20,7 @@ type ActionResponse = {
 export default function LeaveRequestPendingTab({
   lrPending,
   meta,
+  isValid,
 }: LeaveRequestPendingTabProps) {
   const fetcher = useFetcher<ActionResponse>();
 
@@ -45,13 +47,18 @@ export default function LeaveRequestPendingTab({
       meta={meta}
       menuActions={(row) => (
         <>
-          <Menu.Divider />
-          <Menu.Item
-            leftSection={<IconCheck size={16} />}
-            onClick={() => handleApprove(row.LeaveRequestID)}
-          >
-            Approve
-          </Menu.Item>
+          {isValid && (
+            <>
+              <Menu.Divider />
+
+              <Menu.Item
+                leftSection={<IconCheck size={16} />}
+                onClick={() => handleApprove(row.LeaveRequestID)}
+              >
+                Approve
+              </Menu.Item>
+            </>
+          )}
         </>
       )}
       columns={[
