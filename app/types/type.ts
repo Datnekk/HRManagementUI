@@ -89,3 +89,13 @@ export type RemainDayDTO = {
   Used: number;
   Remaining: number;
 };
+
+export type ContractTypeDTO = {
+  ContractTypeID: number;
+  ContractTypeName: string;
+};
+
+export type EmployeeLevelDTO = {
+  EmployeeLevelID: number;
+  EmployeeLevelName: string;
+};

@@ -10,10 +10,10 @@ import { requireAuth } from "~/server/auth.server";
 
 enum TabKeys {
   employees = "Employees",
-  create_account = "Create Account",
 }
 
 export async function loader({ request }: LoaderFunctionArgs) {
+  const { accessToken, roles } = await requireAuth(request);
   const url = new URL(request.url);
 
   const page = parseInt(url.searchParams.get("pageNumber") ?? "1", 10);
@@ -26,10 +26,30 @@ export async function loader({ request }: LoaderFunctionArgs) {
       serviceClient.get(
         `/User?$filter=RoleIds/any(r: r eq 3)&$top=${pageSize}&$skip=${skip}&$count=true`
       ),
+      serviceClient.get(`/Department`, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      }),
+      serviceClient.get(`/EmployeeLevel`, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      }),
+      serviceClient.get(`/ContractType`, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      }),
+      serviceClient.get(`/Position`, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      }),
     ])
   );
 
-  const [userRes] = result ?? [];
+  const [userRes, depRes, empLvRes, ctRes, posRes] = result ?? [];
   const userCount = userRes?.data["@odata.count"] ?? 0;
 
   if (error) {
@@ -38,6 +58,8 @@ export async function loader({ request }: LoaderFunctionArgs) {
   }
 
   return {
+    accessToken,
+    roles,
     users: userRes?.data ?? [],
     userMeta: {
       PageNumber: page,
@@ -45,6 +67,10 @@ export async function loader({ request }: LoaderFunctionArgs) {
       TotalPages: Math.ceil(userCount / pageSize),
       TotalCount: userCount,
     },
+    deps: depRes?.data,
+    empLv: empLvRes?.data,
+    ct: ctRes?.data,
+    pos: posRes?.data,
   };
 }
 
@@ -132,6 +158,36 @@ export async function action({ request }: ActionFunctionArgs) {
       message: "Salary created successfully",
     });
   }
+
+  if (actionType == "edit") {
+    const UserID = Number(formData.get("UserID"));
+    const payload = {
+      DepartmentID: Number(formData.get("DepartmentID")),
+      ContractTypeID: Number(formData.get("ContractTypeID")),
+      EmployeeLevelID: Number(formData.get("EmployeeLevelID")),
+      PositionID: Number(formData.get("PositionID")),
+      Status: formData.get("Status"),
+    };
+    const [error] = await asyncRunSafe(
+      serviceClient.put(`/User/${UserID}`, payload, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      })
+    );
+    if (error) {
+      console.log(error);
+      return json(
+        { success: false, message: `${error?.response?.data}` },
+        { status: 400 }
+      );
+    }
+
+    return json({
+      success: true,
+      message: "Successfully",
+    });
+  }
   return json({
     success: false,
     message: "Invalid action",
@@ -139,10 +195,12 @@ export async function action({ request }: ActionFunctionArgs) {
 }
 
 export default function Employee() {
-  const { users, userMeta } = useLoaderData<typeof loader>();
+  const { roles, users, userMeta, deps, ct, empLv, pos } =
+    useLoaderData<typeof loader>();
   const [activeTab, setActiveTab] = useState<TabKeys | string | null>(
     TabKeys.employees
   );
+  const isAdmin = roles?.includes("Admin");
 
   return (
     <div className="p-4">
@@ -152,7 +210,15 @@ export default function Employee() {
         </Tabs.List>
 
         <Tabs.Panel value={TabKeys.employees}>
-          <EmployeeTab users={users} meta={userMeta} />
+          <EmployeeTab
+            users={users}
+            meta={userMeta}
+            deps={deps}
+            ct={ct}
+            empLv={empLv}
+            pos={pos}
+            isValid={isAdmin}
+          />
         </Tabs.Panel>
       </Tabs>
     </div>
