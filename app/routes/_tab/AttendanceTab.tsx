@@ -69,12 +69,6 @@ export default function AttendanceTab({
           </Button>
         </>
       }
-      onEdit={(item) => {
-        console.log("Edit department", item);
-      }}
-      onDelete={(item) => {
-        console.log("Delete department", item);
-      }}
     />
   );
 }

@@ -1,5 +1,5 @@
 import { Tabs } from "@mantine/core";
-import { LoaderFunctionArgs } from "@remix-run/node";
+import { ActionFunctionArgs, json, LoaderFunctionArgs } from "@remix-run/node";
 import { useLoaderData } from "@remix-run/react";
 import { useState } from "react";
 import { requireAuth } from "~/server/auth.server";
@@ -58,6 +58,165 @@ export async function loader({ request }: LoaderFunctionArgs) {
       TotalCount: departmentCount,
     },
   } as const;
+}
+
+export async function action({ request }: ActionFunctionArgs) {
+  const { accessToken } = await requireAuth(request);
+  const formData = await request.formData();
+  const actionType = formData.get("actionType");
+
+  if (actionType == "dep-create") {
+    const payload = {
+      DepartmentName: formData.get("DepartmentName"),
+      Status: formData.get("Status"),
+      Description: formData.get("Description"),
+    };
+
+    const [error] = await asyncRunSafe(
+      serviceClient.post(`/Department`, payload, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      })
+    );
+    if (error) {
+      return json(
+        { success: false, message: `${error?.response?.data}` },
+        { status: 400 }
+      );
+    }
+
+    return json({
+      success: true,
+      message: "Successfully",
+    });
+  }
+
+  if (actionType == "pos-create") {
+    const payload = {
+      PositionName: formData.get("PositionName"),
+    };
+
+    const [error] = await asyncRunSafe(
+      serviceClient.post(`/Position`, payload, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      })
+    );
+    if (error) {
+      return json(
+        { success: false, message: `${error?.response?.data}` },
+        { status: 400 }
+      );
+    }
+
+    return json({
+      success: true,
+      message: "Successfully",
+    });
+  }
+
+  if (actionType == "dep-edit") {
+    const DepartmentID = formData.get("DepartmentID");
+    const payload = {
+      DepartmentName: formData.get("DepartmentName"),
+      Status: formData.get("Status"),
+      Description: formData.get("Description"),
+    };
+
+    const [error] = await asyncRunSafe(
+      serviceClient.put(`/Department/${DepartmentID}`, payload, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      })
+    );
+    if (error) {
+      return json(
+        { success: false, message: `${error?.response?.data}` },
+        { status: 400 }
+      );
+    }
+
+    return json({
+      success: true,
+      message: "Successfully",
+    });
+  }
+
+  if (actionType == "pos-edit") {
+    const PositionID = formData.get("PositionID");
+    const payload = {
+      PositionName: formData.get("PositionName"),
+    };
+
+    const [error] = await asyncRunSafe(
+      serviceClient.put(`/Position/${PositionID}`, payload, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      })
+    );
+    if (error) {
+      return json(
+        { success: false, message: `${error?.response?.data}` },
+        { status: 400 }
+      );
+    }
+
+    return json({
+      success: true,
+      message: "Successfully",
+    });
+  }
+
+  if (actionType == "dep-delete") {
+    const DepartmentID = formData.get("DepartmentID");
+
+    const [error] = await asyncRunSafe(
+      serviceClient.delete(`/Department/${DepartmentID}`, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      })
+    );
+
+    if (error) {
+      return json(
+        { success: false, message: `${error?.response?.data}` },
+        { status: 400 }
+      );
+    }
+
+    return json({
+      success: true,
+      message: "Successfully",
+    });
+  }
+
+  if (actionType == "pos-delete") {
+    const PositionID = formData.get("PositionID");
+    const [error] = await asyncRunSafe(
+      serviceClient.delete(`/Position/${PositionID}`, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      })
+    );
+
+    if (error) {
+      return json(
+        { success: false, message: `${error?.response?.data}` },
+        { status: 400 }
+      );
+    }
+
+    return json({
+      success: true,
+      message: "Successfully",
+    });
+  }
 }
 
 export default function Organization() {

@@ -13,7 +13,6 @@ import { asyncRunSafe } from "~/utils/other";
 import LeaveRequestApplicationTab from "./_tab/LrApplicationTab";
 import LeaveRequestPendingTab from "./_tab/LrPendingTab";
 import { localizePathServer } from "~/server/utils.server";
-import { AxiosError } from "axios";
 
 enum TabKeys {
   leaveApplication = "Leave Application",
@@ -143,6 +142,58 @@ export async function action({ request }: ActionFunctionArgs) {
       success: true,
       message: "Successfully",
       LeaveRequestID: result?.data?.LeaveRequestID,
+    });
+  }
+
+  if (actionType == "edit") {
+    const LeaveRequestID = formData.get("LeaveRequestID");
+    const payload = {
+      LeaveType: formData.get("LeaveType"),
+      StartDate: new Date(formData.get("StartDate") as string).toISOString(),
+      EndDate: new Date(formData.get("EndDate") as string).toISOString(),
+      Reason: formData.get("Reason"),
+    };
+
+    const [error] = await asyncRunSafe(
+      serviceClient.put(`/LeaveRequest/${LeaveRequestID}`, payload, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      })
+    );
+    if (error) {
+      return json(
+        { success: false, message: `${error?.response?.data}` },
+        { status: 400 }
+      );
+    }
+
+    return json({
+      success: true,
+      message: "Successfully",
+    });
+  }
+
+  if (actionType == "delete") {
+    const LeaveRequestID = formData.get("LeaveRequestID");
+    const [error] = await asyncRunSafe(
+      serviceClient.delete(`/LeaveRequest/${LeaveRequestID}`, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      })
+    );
+
+    if (error) {
+      return json(
+        { success: false, message: `${error?.response?.data}` },
+        { status: 400 }
+      );
+    }
+
+    return json({
+      success: true,
+      message: "Successfully",
     });
   }
 

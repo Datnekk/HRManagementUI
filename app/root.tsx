@@ -1,9 +1,11 @@
 import {
+  isRouteErrorResponse,
   Links,
   Meta,
   Outlet,
   Scripts,
   ScrollRestoration,
+  useRouteError,
 } from "@remix-run/react";
 import type { LinksFunction } from "@remix-run/node";
 
@@ -59,5 +61,48 @@ export default function App() {
       <Outlet />
       <GlobalLoadingIndicator />
     </>
+  );
+}
+
+export function ErrorBoundary() {
+  const error = useRouteError();
+
+  if (isRouteErrorResponse(error)) {
+    if (
+      error.status === 404 &&
+      error.data?.includes(".well-known/appspecific")
+    ) {
+      return new Response("Not Found", { status: 404 });
+    }
+
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <h1 className="text-4xl font-bold text-gray-900 mb-4">
+            {error.status} {error.statusText}
+          </h1>
+          <p className="text-gray-600 mb-4">{error.data}</p>
+          <a href="/" className="text-blue-600 hover:text-blue-800 underline">
+            Go back home
+          </a>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex items-center justify-center min-h-screen">
+      <div className="text-center">
+        <h1 className="text-4xl font-bold text-gray-900 mb-4">
+          Something went wrong
+        </h1>
+        <p className="text-gray-600 mb-4">
+          {error instanceof Error ? error.message : "Unknown error"}
+        </p>
+        <a href="/" className="text-blue-600 hover:text-blue-800 underline">
+          Go back home
+        </a>
+      </div>
+    </div>
   );
 }

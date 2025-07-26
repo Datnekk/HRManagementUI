@@ -1,39 +1,36 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-// AddModal.tsx
-import { Modal, Button } from "@mantine/core";
+import { Modal, Button, Text } from "@mantine/core";
 import { useFetcher } from "@remix-run/react";
-import { ReactNode, useEffect, useRef, useCallback } from "react";
+import { useEffect, useRef, useCallback } from "react";
 import { notifyError, notifySuccess } from "~/utils/notif";
 
-interface AddModalProps {
+interface DeleteModalProps {
   opened: boolean;
   onClose: () => void;
-  title: string;
-  children: ReactNode;
-  submitLabel?: string;
+  title?: string;
+  message?: string;
+  hiddenFields?: Record<string, string | number>;
   isSuccess?: (data: any) => boolean;
   getError?: (data: any) => string | null;
 }
 
-const defaultIsSuccess = (data: any): boolean => {
-  if (!data) return false;
-  return !data.ErrorMessage && data.success !== false;
-};
+const defaultIsSuccess = (data: any): boolean =>
+  !!data && !data.ErrorMessage && data.success !== false;
 
-const defaultGetError = (data: any): string | null => {
-  if (!data) return "An unexpected error occurred";
-  return data.ErrorMessage || data.message || null;
-};
+const defaultGetError = (data: any): string | null =>
+  !data
+    ? "An unexpected error occurred"
+    : data.ErrorMessage || data.message || null;
 
-export function AddModal({
+export function DeleteModal({
   opened,
   onClose,
-  title,
-  children,
-  submitLabel = "Submit",
+  title = "Confirm Delete",
+  message = "Are you sure you want to delete this item?",
+  hiddenFields = {},
   isSuccess = defaultIsSuccess,
   getError = defaultGetError,
-}: AddModalProps) {
+}: DeleteModalProps) {
   const fetcher = useFetcher();
   const wasSubmitting = useRef(false);
 
@@ -60,15 +57,11 @@ export function AddModal({
     wasSubmitting.current = false;
 
     if (isSuccess(fetcher.data)) {
-      const successMessage =
-        fetcher.data.message || "Operation completed successfully";
-      notifySuccess(successMessage);
+      notifySuccess(fetcher.data.message || "Item deleted successfully");
       onClose();
     } else {
       const errorMessage = getError(fetcher.data);
-      if (errorMessage) {
-        notifyError(errorMessage);
-      }
+      if (errorMessage) notifyError(errorMessage);
     }
   }, [fetcher.data, isIdle, opened, isSuccess, getError, onClose]);
 
@@ -80,15 +73,20 @@ export function AddModal({
   return (
     <Modal opened={opened} onClose={handleClose} title={title} centered>
       <fetcher.Form method="post" className="space-y-4">
-        {children}
+        {Object.entries(hiddenFields).map(([key, value]) => (
+          <input key={key} type="hidden" name={key} value={value} />
+        ))}
+
+        <Text>{message}</Text>
 
         <Button
           type="submit"
-          disabled={isSubmitting}
+          color="red"
           fullWidth
           loading={isSubmitting}
+          disabled={isSubmitting}
         >
-          {submitLabel}
+          Delete
         </Button>
       </fetcher.Form>
     </Modal>

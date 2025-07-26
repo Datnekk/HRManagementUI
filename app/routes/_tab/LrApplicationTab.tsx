@@ -74,12 +74,6 @@ export default function LeaveRequestApplicationTab({
           { label: "Status", key: "Status" },
           { label: "Approver Note", key: "ApproverNote" },
         ]}
-        onEdit={(item) => {
-          console.log("Edit department", item);
-        }}
-        onDelete={(item) => {
-          console.log("Delete department", item);
-        }}
       />
       <AddModal
         opened={modalOpen}

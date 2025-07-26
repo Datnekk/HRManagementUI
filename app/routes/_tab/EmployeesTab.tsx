@@ -33,14 +33,12 @@ export default function EmployeeTab({ users, meta }: EmployeeTabProps) {
           { label: "Last Name", key: "LastName" },
           { label: "Date Of Birth", key: "DateOfBirth" },
           { label: "Email", key: "Email" },
+          { label: "Department", key: "DepartmentName" },
+          { label: "EmployeeLevel", key: "EmployeeLevelName" },
+          { label: "Contract Type", key: "ContractTypeName" },
+          { label: "Position", key: "PositionName" },
           { label: "Status", key: "Status" },
         ]}
-        onEdit={(item) => {
-          console.log("Edit department", item);
-        }}
-        onDelete={(item) => {
-          console.log("Delete department", item);
-        }}
       />
       <EmployeeModal opened={modalOpen} onClose={() => setModalOpen(false)} />
     </>

@@ -79,34 +79,51 @@ export function TableWithActions<T>({
                   </Table.Td>
                 ))}
                 <Table.Td className="px-6 py-2 text-right">
-                  <Menu shadow="md" width={250} position="bottom-end" withArrow>
-                    <Menu.Target>
-                      <ActionIcon
-                        variant="subtle"
-                        radius="xl"
-                        size="lg"
-                        className="bg-gray-100 hover:bg-gray-200"
-                      >
-                        <IconDotsVertical size={16} className="text-gray-600" />
-                      </ActionIcon>
-                    </Menu.Target>
-                    <Menu.Dropdown>
-                      <Menu.Item
-                        leftSection={<IconEdit size={14} />}
-                        onClick={() => onEdit?.(row)}
-                      >
-                        Edit
-                      </Menu.Item>
-                      <Menu.Item
-                        leftSection={<IconTrash size={14} />}
-                        color="red"
-                        onClick={() => onDelete?.(row)}
-                      >
-                        Delete
-                      </Menu.Item>
-                      {menuActions?.(row)}
-                    </Menu.Dropdown>
-                  </Menu>
+                  {(onEdit || onDelete || menuActions) && (
+                    <Menu
+                      shadow="md"
+                      width={250}
+                      position="bottom-end"
+                      withArrow
+                    >
+                      <Menu.Target>
+                        <ActionIcon
+                          variant="subtle"
+                          radius="xl"
+                          size="lg"
+                          className="bg-gray-100 hover:bg-gray-200"
+                        >
+                          <IconDotsVertical
+                            size={16}
+                            className="text-gray-600"
+                          />
+                        </ActionIcon>
+                      </Menu.Target>
+
+                      <Menu.Dropdown>
+                        {onEdit && (
+                          <Menu.Item
+                            leftSection={<IconEdit size={14} />}
+                            onClick={() => onEdit(row)}
+                          >
+                            Edit
+                          </Menu.Item>
+                        )}
+
+                        {onDelete && (
+                          <Menu.Item
+                            leftSection={<IconTrash size={14} />}
+                            color="red"
+                            onClick={() => onDelete(row)}
+                          >
+                            Delete
+                          </Menu.Item>
+                        )}
+
+                        {menuActions?.(row)}
+                      </Menu.Dropdown>
+                    </Menu>
+                  )}
                 </Table.Td>
               </Table.Tr>
             ))}

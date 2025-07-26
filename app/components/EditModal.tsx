@@ -1,11 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-// AddModal.tsx
 import { Modal, Button } from "@mantine/core";
 import { useFetcher } from "@remix-run/react";
 import { ReactNode, useEffect, useRef, useCallback } from "react";
 import { notifyError, notifySuccess } from "~/utils/notif";
 
-interface AddModalProps {
+interface EditModalProps {
   opened: boolean;
   onClose: () => void;
   title: string;
@@ -15,25 +14,23 @@ interface AddModalProps {
   getError?: (data: any) => string | null;
 }
 
-const defaultIsSuccess = (data: any): boolean => {
-  if (!data) return false;
-  return !data.ErrorMessage && data.success !== false;
-};
+const defaultIsSuccess = (data: any): boolean =>
+  !!data && !data.ErrorMessage && data.success !== false;
 
-const defaultGetError = (data: any): string | null => {
-  if (!data) return "An unexpected error occurred";
-  return data.ErrorMessage || data.message || null;
-};
+const defaultGetError = (data: any): string | null =>
+  !data
+    ? "An unexpected error occurred"
+    : data.ErrorMessage || data.message || null;
 
-export function AddModal({
+export function EditModal({
   opened,
   onClose,
   title,
   children,
-  submitLabel = "Submit",
+  submitLabel = "Save Changes",
   isSuccess = defaultIsSuccess,
   getError = defaultGetError,
-}: AddModalProps) {
+}: EditModalProps) {
   const fetcher = useFetcher();
   const wasSubmitting = useRef(false);
 
@@ -60,15 +57,11 @@ export function AddModal({
     wasSubmitting.current = false;
 
     if (isSuccess(fetcher.data)) {
-      const successMessage =
-        fetcher.data.message || "Operation completed successfully";
-      notifySuccess(successMessage);
+      notifySuccess(fetcher.data.message || "Changes saved successfully");
       onClose();
     } else {
       const errorMessage = getError(fetcher.data);
-      if (errorMessage) {
-        notifyError(errorMessage);
-      }
+      if (errorMessage) notifyError(errorMessage);
     }
   }, [fetcher.data, isIdle, opened, isSuccess, getError, onClose]);
 
@@ -81,7 +74,6 @@ export function AddModal({
     <Modal opened={opened} onClose={handleClose} title={title} centered>
       <fetcher.Form method="post" className="space-y-4">
         {children}
-
         <Button
           type="submit"
           disabled={isSubmitting}

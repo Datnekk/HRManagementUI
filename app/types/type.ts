@@ -29,11 +29,16 @@ export type PositionDTO = {
 
 export type UserDTO = {
   Id: number;
+  SalaryID: number;
   FirstName: string;
   LastName: string;
   DateOfBirth: string;
   Email: string;
   Status: string;
+  DepartmentName: string;
+  EmployeeLevelName: string;
+  ContractTypeName: string;
+  PositionName: string;
 };
 
 export type AttendanceDTO = {
@@ -72,6 +77,7 @@ export type SalaryDTO = {
 };
 
 export type PayslipDTO = {
+  PayslipID: number;
   UserName: string;
   SalaryID: number;
   IssueDate: Date;
